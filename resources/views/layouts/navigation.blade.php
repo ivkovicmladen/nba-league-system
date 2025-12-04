@@ -55,6 +55,27 @@
                         {{ __('Register') }}
                     </x-nav-link>
                     @endguest
+
+                    @guest
+                    <x-nav-link :href="route('search.index')" :active="request()->routeIs('search.*')" class="text-gray-300 hover:text-white">
+                        {{ __('Search Players & Teams') }}
+                    </x-nav-link>
+                    @endguest
+                    @auth
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-gray-300 hover:text-white">
+                        {{ __('Home') }}
+                    </x-nav-link>
+
+                    <!-- Add this line -->
+                    <x-nav-link :href="route('search.index')" :active="request()->routeIs('search.*')" class="text-gray-300 hover:text-white">
+                        {{ __('Search') }}
+                    </x-nav-link>
+
+                    @if(Auth::user()->isAdmin())
+                    <!-- admin links -->
+                    @endif
+                    @endauth
+
                 </div>
             </div>
 

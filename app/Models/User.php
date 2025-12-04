@@ -85,4 +85,18 @@ class User extends Authenticatable
     {
         return "{$this->first_name} {$this->last_name}";
     }
+
+    public function activePlayerContracts()
+    {
+        return $this->hasMany(Contract::class, 'employer_id')
+            ->where('role', 'player')
+            ->where('status', 'Active');
+    }
+
+    public function activeCoachContracts()
+    {
+        return $this->hasMany(Contract::class, 'employer_id')
+            ->where('role', 'coach')
+            ->where('status', 'Active');
+    }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\ContractController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PublicStatsController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\SearchController;
 
 
 //// Public routes (no auth required)
@@ -15,6 +16,12 @@ use App\Http\Controllers\TeamController;
 // Public routes (no auth required) - should be at the top
 Route::get('/games', [PublicStatsController::class, 'games'])->name('games.public');
 Route::get('/stats', [PublicStatsController::class, 'stats'])->name('stats.public');
+
+// Search & Stats routes (PUBLIC - no authentication required)
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+Route::get('/player/{id}', [SearchController::class, 'showPlayer'])->name('search.player');
+Route::get('/team/{id}', [SearchController::class, 'showTeam'])->name('search.team');
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -66,6 +73,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/games/coaches/{teamId}', [GameController::class, 'getCoaches']);
     Route::get('/games/players/{teamId}', [GameController::class, 'getPlayers']);
 });
+
 
 
 

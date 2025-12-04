@@ -15,7 +15,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('contracts.store') }}">
+                    <form method="POST" action="{{ route('contracts.store') }}" id="contractForm">
                         @csrf
 
                         <div class="mb-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
@@ -24,7 +24,8 @@
                                 <li>Each person can only have ONE active contract at a time</li>
                                 <li>Only persons without active contracts appear in the list</li>
                                 @if(Auth::user()->isAdmin())
-                                <li>Admins can only create <strong>referee</strong> contracts</li>
+                                <li>Admins can create contracts for <strong>players, coaches, and referees</strong></li>
+                                <li>For player/coach contracts, you must select which team is offering the contract</li>
                                 @elseif(Auth::user()->isTeam())
                                 <li>Teams can only create <strong>player</strong> and <strong>coach</strong> contracts</li>
                                 @endif
@@ -33,33 +34,12 @@
 
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">
-                                Select Person
-                            </label>
-
-
-                            <select name="user_id" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
-                                <option value="">Choose a person...</option>
-                                @foreach($persons as $person)
-                                <option value="{{ $person->id }}">
-                                    {{ $person->full_name }} ({{ $person->email }})
-                                </option>
-                                @endforeach
-                            </select>
-
-                            
-                            @error('user_id')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
                                 Role
                             </label>
-                            <select name="role" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                            <select name="role" id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700" required onchange="handleRoleChange()">
                                 <option value="">Select role...</option>
                                 @foreach($allowedRoles as $role)
-                                <option value="{{ $role }}">{{ ucfirst($role) }}</option>
+                                <option value="{{ $role }}" {{ old('role') === $role ? 'selected' : '' }}>{{ ucfirst($role) }}</option>
                                 @endforeach
                             </select>
                             @error('role')
@@ -67,10 +47,50 @@
                             @enderror
 
                             @if(Auth::user()->isAdmin())
-                            <p class="text-sm text-gray-600 mt-1">As an admin, you can only create referee contracts.</p>
+                            <p class="text-sm text-gray-600 mt-1">Select the role first. For players/coaches, you'll need to select a team.</p>
                             @elseif(Auth::user()->isTeam())
                             <p class="text-sm text-gray-600 mt-1">As a team, you can only create player and coach contracts.</p>
                             @endif
+                        </div>
+
+                        <!-- Team Selection (Only for Admin when role is player/coach) -->
+                        @if(Auth::user()->isAdmin())
+                        <div id="teamSelection" class="mb-4" style="display: none;">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Select Team <span class="text-red-500">*</span>
+                            </label>
+                            <select name="employer_id" id="employer_id" class="shadow border rounded w-full py-2 px-3 text-gray-700">
+                                <option value="">Choose which team is offering this contract...</option>
+                                @foreach($teams as $team)
+                                <option value="{{ $team->id }}" {{ old('employer_id') == $team->id ? 'selected' : '' }}>
+                                    {{ $team->full_name }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @error('employer_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                            <p class="text-sm text-gray-600 mt-1">This contract will be created on behalf of the selected team.</p>
+                        </div>
+                        @endif
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Select Person
+                            </label>
+
+                            <select name="user_id" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                                <option value="">Choose a person...</option>
+                                @foreach($persons as $person)
+                                <option value="{{ $person->id }}" {{ old('user_id') == $person->id ? 'selected' : '' }}>
+                                    {{ $person->full_name }} ({{ $person->email }})
+                                </option>
+                                @endforeach
+                            </select>
+
+                            @error('user_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="mb-4">
@@ -78,6 +98,7 @@
                                 Salary
                             </label>
                             <input type="number" name="salary" step="0.01" min="0"
+                                value="{{ old('salary') }}"
                                 class="shadow border rounded w-full py-2 px-3 text-gray-700"
                                 placeholder="5000000.00" required>
                             @error('salary')
@@ -91,11 +112,11 @@
                             </label>
                             <select name="contract_years" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
                                 <option value="">Select duration...</option>
-                                <option value="1">1 Year</option>
-                                <option value="2">2 Years</option>
-                                <option value="3">3 Years</option>
-                                <option value="4">4 Years</option>
-                                <option value="5">5 Years</option>
+                                <option value="1" {{ old('contract_years') == '1' ? 'selected' : '' }}>1 Year</option>
+                                <option value="2" {{ old('contract_years') == '2' ? 'selected' : '' }}>2 Years</option>
+                                <option value="3" {{ old('contract_years') == '3' ? 'selected' : '' }}>3 Years</option>
+                                <option value="4" {{ old('contract_years') == '4' ? 'selected' : '' }}>4 Years</option>
+                                <option value="5" {{ old('contract_years') == '5' ? 'selected' : '' }}>5 Years</option>
                             </select>
                             @error('contract_years')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -112,4 +133,29 @@
             </div>
         </div>
     </div>
+
+    @if(Auth::user()->isAdmin())
+    <script>
+    function handleRoleChange() {
+        const role = document.getElementById('role').value;
+        const teamSelection = document.getElementById('teamSelection');
+        const employerSelect = document.getElementById('employer_id');
+        
+        // Show team selection for player/coach, hide for referee
+        if (role === 'player' || role === 'coach') {
+            teamSelection.style.display = 'block';
+            employerSelect.required = true;
+        } else {
+            teamSelection.style.display = 'none';
+            employerSelect.required = false;
+            employerSelect.value = '';
+        }
+    }
+
+    // Run on page load in case there's an old value
+    document.addEventListener('DOMContentLoaded', function() {
+        handleRoleChange();
+    });
+    </script>
+    @endif
 </x-app-layout>
